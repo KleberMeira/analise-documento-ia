@@ -178,3 +178,33 @@ Quando `imagemBase64` for enviado, `OpenCvService` chama esse comando, recebe a 
     </build>
 </project>
 ```
+
+    public ResultadoValidacao validar(DadosDocumento dadosDocumento) {
+        List<String> regrasAtendidas = new ArrayList<>();
+        List<String> pendencias = new ArrayList<>();
+
+        validarCampo(dadosDocumento.nome(), "Nome identificado", "Nome nao encontrado", regrasAtendidas, pendencias);
+        validarCampo(dadosDocumento.cpf(), "CPF encontrado", "CPF nao encontrado", regrasAtendidas, pendencias);
+        validarCampo(dadosDocumento.endereco(), "Endereco encontrado", "Endereco nao encontrado", regrasAtendidas, pendencias);
+        validarCampo(dadosDocumento.cidade(), "Cidade encontrada", "Cidade nao encontrada", regrasAtendidas, pendencias);
+
+        if (dadosDocumento.dataEmissao() == null) {
+            pendencias.add("Data de emissao nao encontrada");
+        } else {
+            regrasAtendidas.add("Data de emissao reconhecida");
+            LocalDate limite = LocalDate.now(clock).minusDays(90);
+            if (dadosDocumento.dataEmissao().isBefore(limite)) {
+                pendencias.add("Emissao superior a 90 dias");
+            } else {
+                regrasAtendidas.add("Emissao dentro de 90 dias");
+            }
+        }
+
+        boolean aprovado = pendencias.isEmpty();
+        return new ResultadoValidacao(
+                aprovado,
+                aprovado ? "APROVADO" : "REPROVADO",
+                List.copyOf(regrasAtendidas),
+                List.copyOf(pendencias)
+        );
+    }
